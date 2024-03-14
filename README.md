@@ -2,6 +2,12 @@
 
 This project contains a script for automatic commits in a development environment.
 
+## Usage
+
+```bash
+$ iaautocommit
+```
+
 ## Installation
 
 ```bash
