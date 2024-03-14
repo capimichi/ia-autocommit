@@ -43,7 +43,7 @@ function ask_ollama() {
   prompt=$(echo "$prompt" | jq -Rsa .)
 
   response=$(curl -s "http://${OLLAMA_HOST}:${OLLAMA_PORT}/api/generate" -d '{
-    "model": "mistral",
+    "model": "${OLLAMA_MODEL}",
     "prompt": '"$prompt"',
     "stream": false
   }')
