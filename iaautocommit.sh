@@ -6,6 +6,11 @@ function display_help() {
     echo
     echo "Options:"
     echo "-h, --help    Show this help message"
+    echo
+    echo "Environment Variables:"
+    echo "OLLAMA_MODEL  Model to use (default: mistral)"
+    echo "OLLAMA_PORT   Port to use (default: 11434)"
+    echo "OLLAMA_HOST   Host to use (default: localhost)"
     # Add more options here
 }
 
@@ -14,6 +19,10 @@ if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
     display_help
     exit 0
 fi
+
+OLLAMA_MODEL=${OLLAMA_MODEL:-mistral}
+OLLAMA_PORT=${OLLAMA_PORT:-11434}
+OLLAMA_HOST=${OLLAMA_HOST:-localhost}
 
 ACTIONS=$(git status --porcelain)
 
@@ -25,6 +34,7 @@ fi
 function ask_ollama() {
 
   content=$1
+  model=${OLLAMA_MODEL}
 
   # use tr to transform new lines to spaces
 #  content=$(echo $content | tr '\n' ' ')
@@ -32,7 +42,7 @@ function ask_ollama() {
   prompt=$(echo "Please generate a commit message (ONLY THE MESSAGE) for this: ${content}")
   prompt=$(echo "$prompt" | jq -Rsa .)
 
-  response=$(curl -s http://localhost:11434/api/generate -d '{
+  response=$(curl -s "http://${OLLAMA_HOST}:${OLLAMA_PORT}/api/generate" -d '{
     "model": "mistral",
     "prompt": '"$prompt"',
     "stream": false
