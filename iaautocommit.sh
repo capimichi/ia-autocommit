@@ -29,7 +29,7 @@ function ask_ollama() {
   # use tr to transform new lines to spaces
 #  content=$(echo $content | tr '\n' ' ')
 
-  prompt=$(echo "Please generate a commit message for this: ${content}")
+  prompt=$(echo "Please generate a commit message (ONLY THE MESSAGE) for this: ${content}")
   prompt=$(echo "$prompt" | jq -Rsa .)
 
   response=$(curl -s http://localhost:11434/api/generate -d '{
