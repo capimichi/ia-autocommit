@@ -8,6 +8,29 @@ This project contains a script for automatic commits in a development environmen
 $ iaautocommit
 ```
 
+## Requirements
+
+Please note that this script requires:
+
+- git
+- curl
+- jq
+- awk
+- sed
+- tr
+
+### MacOS
+
+```bash
+$ brew install git curl jq gawk gnu-sed gnu-getopt
+```
+
+### Ubuntu
+
+```bash
+$ sudo apt-get install git curl jq gawk gnu-sed gnu-getopt
+```
+
 ## Installation
 
 ```bash
