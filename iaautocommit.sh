@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Define a function to display help information
 function display_help() {
     echo "Usage: $0 [options]"
     echo
@@ -11,10 +10,8 @@ function display_help() {
     echo "OLLAMA_MODEL  Model to use (default: mistral)"
     echo "OLLAMA_PORT   Port to use (default: 11434)"
     echo "OLLAMA_HOST   Host to use (default: localhost)"
-    # Add more options here
 }
 
-# Check if the first argument is -h or --help
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
     display_help
     exit 0
@@ -24,20 +21,25 @@ OLLAMA_MODEL=${OLLAMA_MODEL:-mistral}
 OLLAMA_PORT=${OLLAMA_PORT:-11434}
 OLLAMA_HOST=${OLLAMA_HOST:-localhost}
 
-ACTIONS=$(git status --porcelain)
+GIT_STATUS=$(git status --porcelain)
 
-if [ -z "$ACTIONS" ]; then
+if [ -z "$GIT_STATUS" ]; then
     echo "No changes to commit"
     exit 0
 fi
 
-function ask_ollama() {
+function check_ollama_running() {
+  if ! nc -z $OLLAMA_HOST $OLLAMA_PORT; then
+    echo "Ollama is not running on $OLLAMA_HOST:$OLLAMA_PORT"
+    exit 1
+  fi
+}
 
+check_ollama_running
+
+function ask_ollama() {
   content=$1
   model=${OLLAMA_MODEL}
-
-  # use tr to transform new lines to spaces
-#  content=$(echo $content | tr '\n' ' ')
 
   prompt=$(echo "Please generate a commit message (ONLY THE MESSAGE) for this: ${content}")
   prompt=$(echo "$prompt" | jq -Rsa .)
@@ -48,65 +50,31 @@ function ask_ollama() {
     "stream": false
   }')
 
-  # use jw to get "response" from the json
   response=$(echo $response | jq -r '.response')
   echo "$response"
 }
 
-# loop through the actions
 while read -r line; do
-    # get the first word of the line
     action=$(echo $line | awk '{print $1}')
-
-    # trim action with sed
     action=$(echo $action | sed 's/ //g')
-
-    # get the second word of the line
     file=$(echo $line | awk '{print $2}')
 
     commit_message=""
 
-    # if the action is D
-    if [ "$action" == "D" ]; then
-        commit_message="Deleted $file"
-    fi
+    case "$action" in
+        "R") commit_message="Renamed $file" ;;
+        "C") commit_message="Copied $file" ;;
+        "T") commit_message="Type changed for $file" ;;
+        "D"|"A"|"M"|"AM") commit_message=$(ask_ollama "$(git diff $file)") ;;
+    esac
 
-    # if the action is A
-    if [ "$action" == "A" ]; then
-        commit_message="Added $file"
-    fi
-
-    # if the action is R (rename)
-    if [ "$action" == "R" ]; then
-        commit_message="Renamed $file"
-    fi
-
-    # if the action is C (copy)
-    if [ "$action" == "C" ]; then
-        commit_message="Copied $file"
-    fi
-
-    # if the action is T (change in type of file)
-    if [ "$action" == "T" ]; then
-        commit_message="Type changed for $file"
-    fi
-
-    # if the action is M
-    if [ "$action" == "M" ]; then
-        commit_message=$(ask_ollama "$(git diff $file)")
-    fi
-
-    # if the action is AM
-    if [ "$action" == "AM" ]; then
-        commit_message=$(ask_ollama "$(git diff $file)")
-    fi
-
-    # check if commit_message is not empty
     if [ -n "$commit_message" ]; then
-        echo "Committing $file with message: $commit_message"
-
-        # commit the file
+        echo "Committing $file"
+        echo "---"
+        echo "$commit_message"
+        echo "---"
+        echo ""
         git commit -m "$commit_message" "$file"
     fi
 
-done <<< "$ACTIONS"
+done <<< "$GIT_STATUS"
