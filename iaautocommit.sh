@@ -65,7 +65,9 @@ while read -r line; do
         "R") commit_message="Renamed $file" ;;
         "C") commit_message="Copied $file" ;;
         "T") commit_message="Type changed for $file" ;;
-        "D"|"A"|"M"|"AM") commit_message=$(ask_ollama "$(git diff $file)") ;;
+        "A") commit_message=$(ask_ollama "Added file: $(git diff $file)") ;;
+        "D") commit_message=$(ask_ollama "Deleted file: $(git diff $file)") ;;
+        "M"|"AM") commit_message=$(ask_ollama " $(git diff $file)") ;;
     esac
 
     if [ -n "$commit_message" ]; then
