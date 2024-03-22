@@ -7,7 +7,7 @@ function display_help() {
     echo "-h, --help    Show this help message"
     echo
     echo "Environment Variables:"
-    echo "OLLAMA_MODEL  Model to use (default: mistral)"
+    echo "OLLAMA_MODEL  Model to use (default: openhermes:v2.5)"
     echo "OLLAMA_PORT   Port to use (default: 11434)"
     echo "OLLAMA_HOST   Host to use (default: localhost)"
 }
@@ -17,7 +17,7 @@ if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
     exit 0
 fi
 
-OLLAMA_MODEL=${OLLAMA_MODEL:-mistral}
+OLLAMA_MODEL=${OLLAMA_MODEL:-openhermes:v2.5}
 OLLAMA_PORT=${OLLAMA_PORT:-11434}
 OLLAMA_HOST=${OLLAMA_HOST:-localhost}
 
@@ -41,7 +41,7 @@ function ask_ollama() {
   content=$1
   model=${OLLAMA_MODEL}
 
-  prompt=$(echo "Please generate a commit message (ONLY THE MESSAGE) for this: ${content}")
+  prompt=$(echo "Act as a git developer, read the changes that have been made to this file and output the appropriate commit message, do not include any explanation: ${content}")
   prompt=$(echo "$prompt" | jq -Rsa .)
 
   response=$(curl -s "http://${OLLAMA_HOST}:${OLLAMA_PORT}/api/generate" -d '{
@@ -65,8 +65,8 @@ while read -r line; do
         "R") commit_message="Renamed $file" ;;
         "C") commit_message="Copied $file" ;;
         "T") commit_message="Type changed for $file" ;;
-        "A") commit_message=$(ask_ollama "Added file: $(git diff $file)") ;;
-        "D") commit_message=$(ask_ollama "Deleted file: $(git diff $file)") ;;
+        "A") commit_message=$(ask_ollama "Added file: $file $(head -100 $file)") ;;
+        "D") commit_message=$(ask_ollama "Deleted file: $file $(git diff $file)") ;;
         "M"|"AM") commit_message=$(ask_ollama " $(git diff $file)") ;;
     esac
 
