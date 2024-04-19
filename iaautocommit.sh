@@ -7,7 +7,7 @@ function display_help() {
     echo "-h, --help    Show this help message"
     echo
     echo "Environment Variables:"
-    echo "OLLAMA_MODEL  Model to use (default: openhermes:v2.5)"
+    echo "OLLAMA_MODEL  Model to use (default: llama3:8b)"
     echo "OLLAMA_PORT   Port to use (default: 11434)"
     echo "OLLAMA_HOST   Host to use (default: localhost)"
 }
@@ -41,7 +41,15 @@ function ask_ollama() {
   content=$1
   model=${OLLAMA_MODEL}
 
-  prompt=$(echo "Act as a git developer, read the changes that have been made to this file and output the appropriate commit message, do not include any explanation: ${content}")
+  prompt=$(echo "Generate a commit message for the following changes.
+
+                 Explains what changes have been made.
+
+                 Do not include any description only the message.
+
+                 Only output the message.
+                 ----------
+                 ${content}")
   prompt=$(echo "$prompt" | jq -Rsa .)
 
   response=$(curl -s "http://${OLLAMA_HOST}:${OLLAMA_PORT}/api/generate" -d '{
