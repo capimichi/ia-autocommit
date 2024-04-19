@@ -41,15 +41,7 @@ function ask_ollama() {
   content=$1
   model=${OLLAMA_MODEL}
 
-  prompt=$(echo "Generate a commit message for the following changes.
-
-                 Explains what changes have been made.
-
-                 Do not include any description only the message.
-
-                 Only output the message.
-                 ----------
-                 ${content}")
+  prompt=$(echo "Generate a commit message for the following changes. Explains what changes have been made. Do not include any description only the message. Only output the message. ---------- ${content}")
   prompt=$(echo "$prompt" | jq -Rsa .)
 
   response=$(curl -s "http://${OLLAMA_HOST}:${OLLAMA_PORT}/api/generate" -d '{
