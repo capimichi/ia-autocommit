@@ -51,6 +51,7 @@ function ask_ollama() {
   }')
 
   response=$(echo $response | jq -r '.response')
+  response=$(echo $response | sed 's/^"//;s/"$//')
   echo "$response"
 }
 
